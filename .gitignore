@@ -1,0 +1,68 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js & production build
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# env files (ignores all .env files except .env.example)
+.env
+.env.*
+!.env.example
+
+# markdown files (ignores all .md files except README.md)
+*.md
+!README.md
+
+# AI agent & skill folders
+.agents/
+.agent/
+
+# prisma generated client (only if using a custom output path)
+/src/generated/prisma
+/generated/prisma
+
+# local database files and dumps (postgres / sqlite)
+/pgdata/
+/postgres-data/
+*.sql
+*.dump
+*.backup
+*.sqlite
+*.sqlite3
+*.db
+
+# user uploads
+/public/uploads/
+
+# vercel / typescript / testing
+.vercel
+*.tsbuildinfo
+/coverage
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# certs & keys
+*.pem
