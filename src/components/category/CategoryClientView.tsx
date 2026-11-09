@@ -10,6 +10,7 @@ import type {
 } from "@/types/types";
 import { useAppSelector } from "@/redux/setup/hooks";
 import MobileFilter from "../filter/MobileFilter";
+import Link from "next/link";
 
 const sortOptions = [
   "پرفروش‌ترین",
@@ -120,7 +121,8 @@ export default function CategoryClientView({
           <div className="order-3 flex flex-col justify-between gap-8 lg:order-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {finalProducts.map((product) => (
-                <article
+                <Link
+                href={`/category/${product.categoryId}/${product.id}`}
                   key={product.id}
                   dir="rtl"
                   className="group box-border mx-auto flex h-full w-full max-w-full flex-row items-center gap-3 overflow-hidden border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:flex-col sm:items-stretch sm:gap-3 sm:p-4"
@@ -163,7 +165,7 @@ export default function CategoryClientView({
                       </div>
                     </div>
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
 

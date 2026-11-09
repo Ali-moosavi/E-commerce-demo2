@@ -1,91 +1,71 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import AddShoppingCartRoundedIcon from '@mui/icons-material/AddShoppingCartRounded'
-import { Minus, Plus, Trash2 } from 'lucide-react'
-import type { PRODUCT_TYPE } from '@/types/types'
+import { useEffect, useState } from "react";
+import AddShoppingCartRoundedIcon from "@mui/icons-material/AddShoppingCartRounded";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import {
-  addProductsToCart,
-  removeCartProduct,
+  getCartStatus,
+  createCart,
+  getProductCartQuantity,
   updateCartItemQuantity,
-} from '../actions/actions'
-import { authClient } from '@/lib/auth-clients'
+} from "@/lib/data";
 
 interface AddToCartProps {
-  userId?: string
-  product: PRODUCT_TYPE
-  initialQuantity?: number
+  user: any;
+  productId: string;
 }
 
-export default function AddToCart({
-  userId,
-  product,
-  initialQuantity = 0,
-}: AddToCartProps) {
-  const { data: clientSession } = authClient.useSession()
-  const effectiveUserId = userId ?? clientSession?.user.id
-  const [quantity, setQuantity] = useState(initialQuantity)
-  const [isPending, setIsPending] = useState(false)
-  const productKey = String(product.id)
+export default function AddToCart({ user, productId }: AddToCartProps) {
+  const effectiveUserId = user?.id;
+  const [Quantity, setQuantity] = useState(0);
+  const [isPending, setIsPending] = useState(false);
 
-  const runCartAction = async (
-    action: () => Promise<void>,
-    nextQuantity: number,
-  ) => {
-    if (!effectiveUserId || isPending) return
+  // Load initial quantity from database when component mounts
+  useEffect(() => {
+    if (!effectiveUserId || !productId) return;
 
-    setIsPending(true)
+    const fetchInitialQuantity = async () => {
+      const currentQty = await getProductCartQuantity(
+        effectiveUserId,
+        productId,
+      );
+      setQuantity(currentQty);
+    };
+
+    fetchInitialQuantity();
+  }, [effectiveUserId, productId]);
+
+  const handleQuantityChange = async (newQuantity: number) => {
+    if (!effectiveUserId || isPending) return;
+
+    setIsPending(true);
     try {
-      await action()
-      setQuantity(nextQuantity)
+      let cart = await getCartStatus(effectiveUserId);
+      if (!cart) {
+        cart = await createCart(effectiveUserId);
+      }
+
+      await updateCartItemQuantity(cart.id, productId, newQuantity);
+      setQuantity(newQuantity);
+    } catch (error) {
+      console.error("Failed to update cart:", error);
     } finally {
-      setIsPending(false)
+      setIsPending(false);
     }
-  }
+  };
 
-  const increase = () =>
-    runCartAction(
-      () => addProductsToCart(effectiveUserId as string, product),
-      Math.max(1, quantity + 1),
-    )
-
-  const decrease = () => {
-    if (quantity <= 1) {
-      return runCartAction(
-        () => removeCartProduct(effectiveUserId as string, productKey),
-        0,
-      )
-    }
-
-    return runCartAction(
-      () =>
-        updateCartItemQuantity(
-          effectiveUserId as string,
-          productKey,
-          quantity - 1,
-        ),
-      quantity - 1,
-    )
-  }
-
-  const remove = () =>
-    runCartAction(
-      () => removeCartProduct(effectiveUserId as string, productKey),
-      0,
-    )
-
-  if (quantity === 0) {
+  if (Quantity === 0) {
     return (
       <button
         type="button"
         disabled={!effectiveUserId || isPending}
+        onClick={() => handleQuantityChange(1)}
         className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ef4056] text-sm font-[iransansBold] text-white transition hover:bg-[#d9364d] disabled:cursor-not-allowed disabled:opacity-60"
-        onClick={increase}
       >
         <AddShoppingCartRoundedIcon sx={{ fontSize: 20 }} />
         <span>افزودن به سبد خرید</span>
       </button>
-    )
+    );
   }
 
   return (
@@ -95,9 +75,9 @@ export default function AddToCart({
     >
       <button
         type="button"
-        onClick={increase}
         disabled={isPending}
         aria-label="افزایش تعداد"
+        onClick={() => handleQuantityChange(Quantity + 1)}
         className="flex size-9 items-center justify-center rounded-md hover:bg-[#fff0f1] disabled:opacity-50"
       >
         <Plus className="size-5" />
@@ -106,16 +86,16 @@ export default function AddToCart({
         className="min-w-8 text-center text-sm font-[iransansBold]"
         aria-live="polite"
       >
-        {quantity}
+        {Quantity}
       </span>
       <button
         type="button"
-        onClick={decrease}
         disabled={isPending}
-        aria-label={quantity === 1 ? 'حذف محصول' : 'کاهش تعداد'}
+        aria-label={Quantity === 1 ? "حذف محصول" : "کاهش تعداد"}
+        onClick={() => handleQuantityChange(Quantity - 1)}
         className="flex size-9 items-center justify-center rounded-md hover:bg-[#fff0f1] disabled:opacity-50"
       >
-        {quantity === 1 ? (
+        {Quantity === 1 ? (
           <Trash2 className="size-4" />
         ) : (
           <Minus className="size-5" />
@@ -123,13 +103,13 @@ export default function AddToCart({
       </button>
       <button
         type="button"
-        onClick={remove}
         disabled={isPending}
+        onClick={() => handleQuantityChange(0)}
         aria-label="حذف محصول از سبد خرید"
         className="mr-1 flex size-9 items-center justify-center rounded-md text-[#81858b] hover:bg-[#f7f7f8] hover:text-[#ef4056] disabled:opacity-50"
       >
         <Trash2 className="size-4" />
       </button>
     </div>
-  )
+  );
 }

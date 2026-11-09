@@ -54,25 +54,37 @@ export type PRODUCT_QUESTION_TYPE = {
   text: string
   answerCount: number
 }
+export type CartProduct = {
+  productId?: number | string;
+  categoryId?: number | string;
+  name: string;
+  price: string;
+  images: string[];
+  describtion: string;
+  badge?: string;
+  quantity?: number;
+};
+
+export type UserCart = {
+  id: string;
+  userId?: string;
+  storageId?: string;
+  addedProducts: CartProduct[];
+};
 
 export type PRODUCT_PAGE_DETAILS_TYPE = {
-  brandName: string
-  productGroup: string
-  ratingCount: number
-  commentCount: number
-  questionCount: number
-  colors: PRODUCT_COLOR_TYPE[]
-  featureHighlights: PRODUCT_DETAIL_ITEM_TYPE[]
-  seller: PRODUCT_SELLER_TYPE
-  currency: string
-  returnPolicy: string
-  introduction: string
-  expertReviewImage?: string
-  expertReviewText?: string
-  specifications: PRODUCT_DETAIL_ITEM_TYPE[]
-  reviews: PRODUCT_REVIEW_TYPE[]
-  questions: PRODUCT_QUESTION_TYPE[]
-}
+  id: string;
+  brandName: string;
+  productGroup: string;
+  ratingCount: number;
+  commentCount: number;
+  questionCount: number;
+  featureHighlights: PRODUCT_DETAIL_ITEM_TYPE[];
+  currency: string;
+  introduction: string;
+  expertReviewText?: string;
+  specifications: PRODUCT_DETAIL_ITEM_TYPE[];
+};
 
 export type PRODUCT_TYPE = {
   badge: string | null
@@ -224,6 +236,12 @@ export type ProductPropertyGroup = {
   nameFa: string;
   displayType: 'color' | 'text';
   values?: PropertyValue[];
+};
+
+export type ProductCategory = {
+  categoryId: string;
+  name: string;
+  children: ProductCategory[];
 };
 
 export type SUCCES_PRODUCTS_TYPE = CATEGORY_TYPE[];

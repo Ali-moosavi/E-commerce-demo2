@@ -1,103 +1,87 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { getProductById, getAllProducts } from '@/lib/data'
-import type { MOBILEDATA, PRODUCT_TYPE } from '@/types/types'
-import ProductGallery from '@/components/single-product/PoductGallery'
-import StarRoundedIcon from '@mui/icons-material/StarRounded'
-import KeyboardArrowLeftRoundedIcon from '@mui/icons-material/KeyboardArrowLeftRounded'
-import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined'
-import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined'
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
-import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined'
-import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded'
-import ThumbUpAltOutlinedIcon from '@mui/icons-material/ThumbUpAltOutlined'
-import ProductsColors from '@/components/single-product/ProductsColors'
-import AddToCart from '@/components/single-product/AddToCart'
-import { auth } from '@/lib/auth'
-import { headers } from 'next/headers'
-import { getUserCart } from '@/components/actions/actions'
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import ProductGallery from "@/components/single-product/PoductGallery";
+import StarRoundedIcon from "@mui/icons-material/StarRounded";
+import KeyboardArrowLeftRoundedIcon from "@mui/icons-material/KeyboardArrowLeftRounded";
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
+import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
+import AddToCart from "@/components/single-product/AddToCart";
+import { getProductById } from "@/lib/data";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 
-const faDigits = (value: number) =>
-   new Intl.NumberFormat('fa-IR').format(value)
-
- 
-
-async function getProduct(id: string): Promise<MOBILEDATA | null> {
-  return getProductById(Number(id)) ?? null
-}
-
-export async function generateStaticParams() {
-  const products = getAllProducts()
-
-  return products.map((product) => ({
-    categoryid: String(product.Categoryid ?? '1'),
-    id: String(product.id),
-  }))
-}
 
 export default async function SingleProduct({
   params,
 }: {
-  params: Promise<{ categoryid: string; id: string }>
+  params: Promise<{ categoryid: string; id: string }>;
 }) {
-  const { categoryid, id } = await params
-  const product = await getProduct(id)
-  const session =await auth.api.getSession({
+  const session = await auth.api.getSession({
     headers: await headers()
-  })
-  const cart = session ? await getUserCart(session.user.id) : null
-  const cartQuantity = cart?.addedProducts.find(
-    (item) => String(item.productId) === String(product?.id),
-  )?.quantity ?? 0
+  });
+  const { categoryid, id } = await params;
+  const product = await getProductById(id);
+  if (!product) notFound();
 
-  if (!product?.id) notFound()
+  const details = product.pageDetails;
+  const featureItems = details?.featureHighlights ?? [];
+  const specifications = details?.specifications ?? [];
+  const faDigits = (n: number | string) =>
+    String(n).replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
-  const cartProduct: PRODUCT_TYPE = {
-    id: String(product.id),
-    categoryId: String(product.Categoryid),
-    description: product.describtion,
-    images: product.image,
-    name: product.name,
-    price: product.price,
-    rate: product.rate,
-    badge: product.badge ?? null,
-  }
+  const seller = {
+    name: "دیجی‌کالا",
+    otherSellerCount: 3,
+    satisfactionRate: "۹۴٪",
+    performance: "عالی",
+    warranty: "گارانتی ۱۸ ماهه شرکتی",
+    inventoryStatus: "موجود در انبار دیجی‌کالا",
+    shippingMethods: ["ارسال دیجی‌کالا", "ارسال فوری"],
+    remainingStock: 3,
+    clubPoints: 150,
+  };
 
-  const details = product.pageDetails
-  const properties = product.properties ?? []
-  const colors = product.pageDetails ? product.pageDetails?.colors : []
+  const reviews = [
+    {
+      id: "1",
+      recommendation: "خرید این محصول را توصیه می‌کنم",
+      text: "کیفیت صفحه نمایش و باتری عالی است.",
+      author: "کاربر دیجی‌کالا",
+      isBuyer: true,
+      helpfulCount: 10,
+    },
+  ];
 
-  const featureItems =
-    details?.featureHighlights ??
-    properties.map((property) => ({
-      label: property.nameFa,
-      value: property.valueFa || property.value,
-    }))
-  const specifications = [
-    ...properties.map((property) => ({
-      label: property.nameFa,
-      value: property.valueFa || property.value,
-    })),
-    ...(details?.specifications ?? []),
-  ]
-  const seller = details?.seller
+  const questions = [
+    {
+      id: "1",
+      text: "آیا این مدل دو سیم‌کارت است؟",
+      answerCount: 2,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white pb-28 text-[#23254e] lg:pb-0">
-      <main className="mx-auto w-full max-w-[1676px]   pt-5 px-2 lg:pt-39">
+      <main className="mx-auto w-full max-w-[1676px] pt-5 px-2 lg:pt-39">
         <nav
           aria-label="مسیر صفحه"
           className="mb-5 flex items-center gap-1 overflow-hidden whitespace-nowrap text-[11px] text-[#81858b] sm:text-xs"
         >
           <Link href="/" className="hover:text-[#19bfd3]">
-            دیجی‌کالا
+            دیجیکالا
           </Link>
           <KeyboardArrowLeftRoundedIcon sx={{ fontSize: 16 }} />
-          <Link href={`/category/${categoryid}`} className="hover:text-[#19bfd3]">
-            {details?.productGroup ?? product.name}
+          <Link
+            href={`/category/${categoryid}`}
+            className="hover:text-[#19bfd3]"
+          >
+            {details?.productGroup ?? product.category.name}
           </Link>
           {details?.brandName && (
             <>
@@ -109,12 +93,14 @@ export default async function SingleProduct({
 
         <section className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-[minmax(330px,2.6fr)_minmax(390px,3.7fr)_minmax(300px,2.55fr)] lg:grid-rows-[auto_1fr]">
           <div className="lg:col-start-1 lg:row-span-2 lg:row-start-1">
-            <ProductGallery name={product.name} images={product.image} />
+            <ProductGallery name={product.name} images={product.images} />
           </div>
           <header className="min-w-0 lg:col-start-2 lg:row-start-1">
             {details && (
               <div className="mb-3 flex items-center gap-2 text-xs text-[#19bfd3]">
-                <Link href={`/category/${categoryid}`}>{details.brandName}</Link>
+                <Link href={`/category/${categoryid}`}>
+                  {details.brandName}
+                </Link>
                 <span className="text-gray-300">/</span>
                 <span>{details.productGroup}</span>
               </div>
@@ -128,7 +114,7 @@ export default async function SingleProduct({
                 dir="ltr"
                 className="truncate text-[10px] text-[#a1a3a8] sm:text-xs"
               >
-                {product.describtion}
+                {product.description}
               </h2>
             </div>
           </header>
@@ -136,7 +122,7 @@ export default async function SingleProduct({
           <div className="min-w-0 lg:col-start-2 lg:row-start-2">
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
               <span className="flex items-center gap-1 text-[#3f4064]">
-                <StarRoundedIcon sx={{ color: '#f9bc00', fontSize: 18 }} />
+                <StarRoundedIcon sx={{ color: "#f9bc00", fontSize: 18 }} />
                 <b>{product.rate}</b>
                 {details && (
                   <span className="text-[10px] text-[#a1a3a8]">
@@ -156,11 +142,9 @@ export default async function SingleProduct({
               )}
             </div>
 
-            <ProductsColors colors={colors}/>
-
             {featureItems.length > 0 && (
               <div className="mt-7">
-                <h3 className="mb-4 text-base font-[iransansBold]">ویژگی‌ها</h3>
+                <h3 className="mb-4 text-base font-[iransansBold]">ویژگیها</h3>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
                   {featureItems.slice(0, 4).map((feature) => (
                     <div
@@ -171,7 +155,9 @@ export default async function SingleProduct({
                         {feature.label}
                       </p>
                       <p className="line-clamp-2 text-xs font-[iransansBold] leading-5 text-[#3f4064]">
-                        {feature.value.length > 14 ? `...${feature.value.slice(0, 14)}` : feature.value}
+                        {feature.value.length > 14
+                          ? `...${feature.value.slice(0, 14)}`
+                          : feature.value}
                       </p>
                     </div>
                   ))}
@@ -181,7 +167,7 @@ export default async function SingleProduct({
                     href="#specifications"
                     className="mt-4 inline-flex items-center text-xs font-[iransansBold] text-[#19bfd3]"
                   >
-                    مشاهده همه ویژگی‌ها
+                    مشاهده همه ویژگیها
                     <KeyboardArrowLeftRoundedIcon sx={{ fontSize: 18 }} />
                   </a>
                 )}
@@ -206,10 +192,10 @@ export default async function SingleProduct({
                     <p className="mt-2 text-[11px] text-[#81858b]">
                       <span className="text-[#00a049]">
                         {seller.satisfactionRate}
-                      </span>{' '}
+                      </span>{" "}
                       رضایت از کالا
                       <span className="mx-2 text-gray-300">|</span>
-                      عملکرد{' '}
+                      عملکرد{" "}
                       <span className="text-[#00a049]">
                         {seller.performance}
                       </span>
@@ -234,11 +220,11 @@ export default async function SingleProduct({
                       <p key={method} className="flex items-center gap-2">
                         {index === 0 ? (
                           <LocalShippingOutlinedIcon
-                            sx={{ fontSize: 17, color: '#19bfd3' }}
+                            sx={{ fontSize: 17, color: "#19bfd3" }}
                           />
                         ) : (
                           <WorkspacePremiumOutlinedIcon
-                            sx={{ fontSize: 17, color: '#a63489' }}
+                            sx={{ fontSize: 17, color: "#a63489" }}
                           />
                         )}
                         {method}
@@ -264,18 +250,12 @@ export default async function SingleProduct({
                       </span>
                     </p>
                   </div>
-                  <AddToCart
-                    userId={session?.user.id}
-                    product={cartProduct}
-                    initialQuantity={cartQuantity}
-                  />
+                  <AddToCart user={session?.user} productId={product.id} />
                   <div className="mt-4 flex items-center gap-2 text-[11px] text-[#62666d]">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f9bc00] text-xs font-bold">
                       +
                     </span>
-                    <span>
-                      {faDigits(seller.clubPoints)} امتیاز دیجی‌کلاب
-                    </span>
+                    <span>{faDigits(seller.clubPoints)} امتیاز دیجیکلاب</span>
                     <InfoOutlinedIcon
                       sx={{ fontSize: 16 }}
                       className="mr-auto"
@@ -287,34 +267,25 @@ export default async function SingleProduct({
           )}
         </section>
 
-        {details?.returnPolicy && (
-          <section className="mt-7 flex gap-3 rounded-lg border border-gray-200 p-4 text-xs leading-6 text-[#62666d]">
-            <InfoOutlinedIcon
-              sx={{ color: '#f9a825', fontSize: 22 }}
-              className="shrink-0"
-            />
-            <p>{details.returnPolicy}</p>
-          </section>
-        )}
-
         {details && (
           <>
             <nav className="sticky top-0 z-30 mt-8 overflow-x-auto border-b border-gray-200 bg-white">
               <ul className="flex min-w-max gap-8 px-1 text-sm text-[#62666d]">
                 {[
-                  ['#introduction', 'معرفی'],
-                  ['#review', 'بررسی تخصصی'],
-                  ['#specifications', 'مشخصات'],
-                  ['#comments', 'دیدگاه‌ها'],
-                  ['#questions', 'پرسش‌ها'],
+                  ["#introduction", "معرفی"],
+                  ["#review", "بررسی تخصصی"],
+                  ["#specifications", "مشخصات"],
+                  ["#comments", "دیدگاهها"],
+                  ["#questions", "پرسشها"],
                 ].map(([href, label], index) => (
                   <li key={href}>
                     <a
                       href={href}
-                      className={`block py-4 ${index === 0
-                          ? 'border-b-2 border-[#ef4056] font-[iransansBold] text-[#3f4064]'
-                          : ''
-                        }`}
+                      className={`block py-4 ${
+                        index === 0
+                          ? "border-b-2 border-[#ef4056] font-[iransansBold] text-[#3f4064]"
+                          : ""
+                      }`}
                     >
                       {label}
                     </a>
@@ -338,21 +309,10 @@ export default async function SingleProduct({
               className="scroll-mt-20 border-b border-gray-200 py-8"
             >
               <SectionTitle>بررسی تخصصی</SectionTitle>
-              {details.expertReviewText && (
+              {details.expertreview && (
                 <p className="max-w-5xl text-sm leading-8 text-[#3f4064]">
-                  {details.expertReviewText}
+                  {details.expertreview}
                 </p>
-              )}
-              {details.expertReviewImage && (
-                <div className="relative mx-auto mt-6 aspect-square w-full max-w-225 overflow-hidden rounded-xl bg-[#0b103d]">
-                  <Image
-                    src={`/${details.expertReviewImage}`}
-                    alt={`اینفوگرافیک ${product.name}`}
-                    fill
-                    sizes="(max-width: 900px) 100vw, 900px"
-                    className="object-contain"
-                  />
-                </div>
               )}
             </section>
 
@@ -384,7 +344,7 @@ export default async function SingleProduct({
               id="comments"
               className="scroll-mt-20 border-b border-gray-200 py-8"
             >
-              <SectionTitle>دیدگاه‌ها</SectionTitle>
+              <SectionTitle>دیدگاهها</SectionTitle>
               <div className="mt-6 grid gap-5 lg:grid-cols-[230px_1fr]">
                 <div>
                   <div className="flex items-center gap-2">
@@ -403,14 +363,14 @@ export default async function SingleProduct({
                   </p>
                 </div>
                 <div className="space-y-4">
-                  {details.reviews.map((review) => (
+                  {reviews.map((review) => (
                     <article
                       key={review.id}
                       className="rounded-xl border border-gray-200 p-5"
                     >
                       <div className="mb-4 flex items-center gap-2">
                         <CheckCircleRoundedIcon
-                          sx={{ color: '#00a049', fontSize: 20 }}
+                          sx={{ color: "#00a049", fontSize: 20 }}
                         />
                         <strong className="text-sm">
                           {review.recommendation}
@@ -441,9 +401,9 @@ export default async function SingleProduct({
             </section>
 
             <section id="questions" className="scroll-mt-20 py-8">
-              <SectionTitle>پرسش‌ها</SectionTitle>
+              <SectionTitle>پرسشها</SectionTitle>
               <div className="mt-6 max-w-4xl space-y-4">
-                {details.questions.map((question) => (
+                {questions.map((question) => (
                   <article
                     key={question.id}
                     className="rounded-xl border border-gray-200 p-5 text-sm"
@@ -452,7 +412,7 @@ export default async function SingleProduct({
                     <p className="mt-3 text-xs text-[#19bfd3]">
                       {question.answerCount > 0
                         ? `${faDigits(question.answerCount)} پاسخ`
-                        : 'ثبت پاسخ'}
+                        : "ثبت پاسخ"}
                     </p>
                   </article>
                 ))}
@@ -463,12 +423,8 @@ export default async function SingleProduct({
       </main>
 
       <div className="fixed inset-x-0 bottom-15.25 z-40 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.08)] lg:hidden">
-        <div className="mx-auto flex max-w-xl items-center gap-4 ">
-          <AddToCart
-          product={cartProduct}
-          userId={session?.user.id}
-          initialQuantity={cartQuantity}
-          />
+        <div className="mx-auto flex max-w-xl items-center gap-4">
+          <AddToCart user={session?.user} productId={product.id} />
           <p className="whitespace-nowrap text-left">
             <strong className="text-base font-[iransansBold]">
               {product.price}
@@ -478,7 +434,7 @@ export default async function SingleProduct({
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -486,5 +442,5 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <h2 className="relative mb-5 inline-block pb-3 text-lg font-[iransansBold] text-[#0c0c0c] after:absolute after:bottom-0 after:right-0 after:h-0.5 after:w-16 after:bg-[#ef4056]">
       {children}
     </h2>
-  )
+  );
 }

@@ -6,7 +6,7 @@ import { useState, useTransition } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { userExist } from '@/components/actions/actions'
+import { userExists } from "@/components/actions/actions";
 import { signUpUser } from '@/components/actions/actions'
 import { signInUser } from '@/components/actions/actions'
 import { authClient } from '@/lib/auth-clients'
@@ -159,7 +159,7 @@ export default function RegistrationPage() {
 
         try {
             if (data.step === 'identifier') {
-                const exists = await userExist({ identifier: data.identifier })
+                const exists = await userExists(data.identifier)
                 form.setValue('identifyState', exists , {
                     shouldTouch:false,
                     shouldDirty:false,

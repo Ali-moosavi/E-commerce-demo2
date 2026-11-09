@@ -1,16 +1,21 @@
 "use server";
 
-import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
-import { createUserSchema } from "@/lib/user-schema";
-import type { CreateUserInput } from "@/lib/user-schema";
+import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { getDb, ready } from "@/lib/db";
-import { randomUUID } from "node:crypto";
-import type { PRODUCT_TYPE } from "@/types/types";
-import type { CartProduct, UserCart } from "@/types/cart";
+import { z } from "zod";
 
-type AuthResult =
+// 1. Define the Zod validation schema and types
+const createUserSchema = z.object({
+  identifier: z.string().email("Invalid email address."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
+  fullname: z.string().min(2, "Full name is required."),
+});
+
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+export type AuthResult =
   | {
       success: true;
       user: {
@@ -24,17 +29,28 @@ type AuthResult =
       error: string;
     };
 
-export async function userExist({ identifier }: { identifier: string }) {
-  const email = identifier.trim().toLowerCase();
+export async function productPropertyLinker(optionIds: string[]) {
+  console.log(optionIds, "optionIds");
+  const productsProperties = await prisma.productsproperty.findMany({
+    select: {
+      productId: true,
+    },
+    where: {
+      optionId: { in: optionIds },
+    },
+  });
 
-  if (!email) return false;
+  const filteredProducts = await prisma.grandChildProduct.findMany({
+    where: {
+      id: { in: productsProperties.map((item) => item.productId) },
+    },
+  });
 
-  const context = await auth.$context;
-  const userRecord = await context.internalAdapter.findUserByEmail(email);
-  return Boolean(userRecord?.user);
+  return filteredProducts;
 }
 
 export async function signUpUser(data: CreateUserInput): Promise<AuthResult> {
+  // 2. Call .safeParse() on the Zod schema
   const parsed = createUserSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -57,9 +73,9 @@ export async function signUpUser(data: CreateUserInput): Promise<AuthResult> {
     return {
       success: true,
       user: {
-        id: response?.user?.id,
-        email: response?.user?.email,
-        name: response?.user?.name,
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.name,
       },
     };
   } catch (error) {
@@ -109,193 +125,17 @@ export async function signOutAction() {
   });
   redirect("/");
 }
+export async function userExists(email: string): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
 
-export async function createUserCart(userId: string, products: PRODUCT_TYPE) {
-  await ready();
-  const pool = getDb();
-  const id = randomUUID();
-  const now = new Date().toISOString();
-  const addedProducts: CartProduct[] = [
-    {
-      productId: products.id,
-      categoryId: products.categoryId,
-      name: products.name,
-      price: products.price,
-      images: products.images,
-      describtion: products.description,
-      badge: products.badge ?? undefined,
-      quantity: 1,
+  const existingUser = await prisma.user.findUnique({
+    where: {
+      email: normalizedEmail,
     },
-  ];
-
-  await pool.query(
-    `INSERT INTO "carts" ("id", "userId", "addedProducts", "createdAt", "updatedAt")
-     VALUES ($1, $2, $3, $4, $5)`,
-    [id, userId, JSON.stringify(addedProducts), now, now],
-  );
-
-  return normalizeCart({
-    id: userId,
-    userId,
-    storageId: id,
-    addedProducts,
-  });
-}
-
-function normalizeCart(cart: UserCart): UserCart {
-  return {
-    ...cart,
-    addedProducts: (cart.addedProducts ?? []).map((item) => ({
-      ...item,
-      quantity: Math.max(1, Number(item.quantity) || 1),
-    })),
-  };
-}
-
-export async function getUserCart(userId: string): Promise<UserCart | null> {
-  if (!userId) return null;
-
-  await ready();
-  const pool = getDb();
-  const { rows } = await pool.query(
-    'SELECT * FROM "carts" WHERE "userId" = $1',
-    [userId],
-  );
-
-  const row = rows[0] as
-    | { id: string; userId: string; addedProducts: string }
-    | undefined;
-
-  if (!row) return null;
-
-  return normalizeCart({
-    id: userId,
-    userId,
-    storageId: row.id,
-    addedProducts: JSON.parse(row.addedProducts) as CartProduct[],
-  });
-}
-
-function toCartProduct(product: PRODUCT_TYPE): CartProduct {
-  return {
-    productId: product.id,
-    categoryId: product.categoryId,
-    name: product.name,
-    price: product.price,
-    images: product.images,
-    describtion: product.description,
-    badge: product.badge ?? undefined,
-    quantity: 1,
-  };
-}
-
-function isSameCartProduct(item: CartProduct, productKey: string) {
-  return String(item.productId ?? item.name) === productKey;
-}
-
-export async function addProductsToCart(
-  userId: string,
-  products: PRODUCT_TYPE,
-) {
-  if (!userId) {
-    throw new Error("A user must be signed in to use the cart");
-  }
-
-  const cart = await getUserCart(userId);
-
-  if (!cart) {
-    await createUserCart(userId, products);
-    return;
-  }
-
-  const productKey = String(products.id);
-  const productIndex = cart.addedProducts.findIndex(
-    (item) =>
-      isSameCartProduct(item, productKey) ||
-      (!item.productId && item.name === products.name),
-  );
-  const addedProducts = [...cart.addedProducts];
-
-  if (productIndex >= 0) {
-    const item = addedProducts[productIndex];
-    addedProducts[productIndex] = {
-      ...item,
-      quantity: (item.quantity ?? 1) + 1,
-    };
-  } else {
-    addedProducts.push(toCartProduct(products));
-  }
-
-  await ready();
-  const pool = getDb();
-  const now = new Date().toISOString();
-  await pool.query(
-    'UPDATE "carts" SET "addedProducts" = $1, "updatedAt" = $2 WHERE "id" = $3',
-    [JSON.stringify(addedProducts), now, cart.storageId ?? cart.id],
-  );
-}
-
-export async function updateCartItemQuantity(
-  userId: string,
-  productKey: string,
-  quantity: number,
-) {
-  const cart = await getUserCart(userId);
-  if (!cart) return;
-
-  const addedProducts = cart.addedProducts
-    .map((item) =>
-      isSameCartProduct(item, productKey)
-        ? { ...item, quantity: Math.max(0, Math.floor(quantity)) }
-        : item,
-    )
-    .filter((item) => (item.quantity ?? 0) > 0);
-
-  await ready();
-  const pool = getDb();
-  const now = new Date().toISOString();
-  await pool.query(
-    'UPDATE "carts" SET "addedProducts" = $1, "updatedAt" = $2 WHERE "id" = $3',
-    [JSON.stringify(addedProducts), now, cart.storageId ?? cart.id],
-  );
-}
-
-export async function removeCartProduct(userId: string, productKey: string) {
-  const cart = await getUserCart(userId);
-  if (!cart) return;
-
-  const addedProducts = cart.addedProducts.filter(
-    (item) => !isSameCartProduct(item, productKey),
-  );
-
-  await ready();
-  const pool = getDb();
-  const now = new Date().toISOString();
-  await pool.query(
-    'UPDATE "carts" SET "addedProducts" = $1, "updatedAt" = $2 WHERE "id" = $3',
-    [JSON.stringify(addedProducts), now, cart.storageId ?? cart.id],
-  );
-}
-
-import { prisma } from "@/lib/prisma";
-
-export async function productPropertyLinker(optionIds: string[]) {
-  console.log(optionIds, "optionIds");
-  const productsProperties = await prisma.productsproperty.findMany({
     select: {
-      productId: true,
-    },
-    where: {
-      optionId: { in: optionIds },
+      id: true, // Only select id for a fast, lightweight query
     },
   });
 
-  const filteredProducts = await prisma.grandChildProduct.findMany({
-    where: {
-      id: { in: productsProperties.map((item) => item.productId) },
-    },
-  });
-
-
-  return filteredProducts;
+  return Boolean(existingUser);
 }

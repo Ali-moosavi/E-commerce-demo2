@@ -103,6 +103,7 @@ model grandChildProduct {
   parentCategory categories       @relation("ProductParentCategory", fields: [parentCategoryId], references: [categoryId], onDelete: Cascade)
   properties  productsproperty[]
   pageDetails pageDetails?
+  cartItem          cartItem[]
 }
 
 model productsproperty {
@@ -148,15 +149,46 @@ model pageDetails {
 }
 
 model featureHighlights {
-  id          String      @id @default(cuid())
-  label       String
-  value       String
-  pageDetails pageDetails @relation(fields: [id], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  pageDetailsId String      @map("page_details_id")
+  label         String
+  value         String
+  pageDetails   pageDetails @relation(fields: [pageDetailsId], references: [id], onDelete: Cascade)
+
+  @@index([pageDetailsId])
 }
 
 model specifications {
-  id          String      @id @default(cuid())
-  label       String
-  value       String
-  pageDetails pageDetails @relation(fields: [id], references: [id], onDelete: Cascade)
+  id            String      @id @default(cuid())
+  pageDetailsId String      @map("page_details_id")
+  label         String
+  value         String
+  pageDetails   pageDetails @relation(fields: [pageDetailsId], references: [id], onDelete: Cascade)
+
+  @@index([pageDetailsId])
+}
+
+model cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique @map("user_id") // One active cart per user
+  items     cartItem[]
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+}
+
+model cartItem {
+  id        String            @id @default(cuid())
+  cartId    String            @map("cart_id")
+  productId String            @map("product_id")
+  quantity  Int               @default(1)
+  
+  cart      cart              @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   grandChildProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  // Prevents duplicate rows for the same product in the same cart
+  // and allows fast lookups for your AddToCart +/- buttons
+  @@unique([cartId, productId])
 }
