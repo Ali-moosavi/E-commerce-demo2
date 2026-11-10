@@ -18,7 +18,7 @@ const propertiesSlice = createSlice({
   },
   extraReducers(builder) {
     builder.addCase(postFilterOptions.fulfilled , (state , action)=>{
-      state.filteredProducts = action.payload
+      state.filteredProducts = action.payload ?? []
     })
   },
 });

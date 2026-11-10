@@ -4,11 +4,11 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import MobileCategoryTree from '@/components/category/MobileCategoryTree'
 import Link from 'next/link'
 import ArrowRight from '@mui/icons-material/ArrowBackIosRounded'
-import { getProductsCategory } from '@/lib/category-data'
+import { getProductsCategories } from '@/lib/data'
 
 async function Category() {
 
-  const productsCategory = await getProductsCategory()
+  const productsCategory = await getProductsCategories()
 
   return (
     <div className="min-h-screen bg-[#f2f2f2]">

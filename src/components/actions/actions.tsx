@@ -29,8 +29,7 @@ export type AuthResult =
       error: string;
     };
 
-export async function productPropertyLinker(optionIds: string[]) {
-  console.log(optionIds, "optionIds");
+export async function productPropertyLinker(optionIds: string[] , pathname: string) {
   const productsProperties = await prisma.productsproperty.findMany({
     select: {
       productId: true,
@@ -40,17 +39,21 @@ export async function productPropertyLinker(optionIds: string[]) {
     },
   });
 
-  const filteredProducts = await prisma.grandChildProduct.findMany({
-    where: {
-      id: { in: productsProperties.map((item) => item.productId) },
-    },
-  });
+  const params = new URLSearchParams();
+  productsProperties.forEach((item) => params.append("id", item.productId));
+  redirect(`${pathname}?${params.toString()}`);
 
-  return filteredProducts;
+  // const filteredProducts = await prisma.grandChildProduct.findMany({
+  //   where: {
+  //     id: { in: productsProperties.map((item) => item.productId) },
+  //   },
+  // });
+
+  // return filteredProducts;
 }
 
 export async function signUpUser(data: CreateUserInput): Promise<AuthResult> {
-  // 2. Call .safeParse() on the Zod schema
+
   const parsed = createUserSchema.safeParse(data);
 
   if (!parsed.success) {
@@ -133,7 +136,7 @@ export async function userExists(email: string): Promise<boolean> {
       email: normalizedEmail,
     },
     select: {
-      id: true, // Only select id for a fast, lightweight query
+      id: true, 
     },
   });
 

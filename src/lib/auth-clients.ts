@@ -1,12 +1,12 @@
-import { createAuthClient } from "better-auth/react"
-
-const configuredUrl = process.env.NEXT_PUBLIC_BETTER_AUTH_URL
-const isLocalUrl = configuredUrl?.includes('localhost') || configuredUrl?.includes('127.0.0.1')
+import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-    baseURL: configuredUrl && !isLocalUrl
-        ? configuredUrl
-        : typeof window !== 'undefined'
-            ? window.location.origin
-            : undefined,
-})
+  // In the browser, ALWAYS use the current origin (works on localhost, staging, and production).
+  // On the server (during build), fall back to env or localhost.
+  baseURL:
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000",
+});
+
+export const { useSession, signIn, signOut, signUp } = authClient;

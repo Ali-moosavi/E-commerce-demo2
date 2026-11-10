@@ -7,7 +7,7 @@ import { useEffect } from "react";
 import { useAppDispatch } from "@/redux/setup/hooks";
 import { setfilteredProperties } from "@/redux/features/properties/propertiesSlice";
 import { postFilterOptions } from "@/redux/features/properties/propertiesService";
-
+import { usePathname } from "next/navigation";
 
 
 
@@ -21,10 +21,11 @@ export default function FilterSection({
   const dispatch = useAppDispatch();
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
   const [Checked, setChecked] = useState(false);
-
+  const pathname = usePathname();
+  console.log(pathname)
   useEffect(() => {
-    dispatch(postFilterOptions(filterOptions));
-  }, [filterOptions, dispatch]);
+    dispatch(postFilterOptions({ filterOptions, pathname }));
+  }, [filterOptions, dispatch, pathname]);
 
   const checkboxChangeHandeler = (checked: boolean, optionId: string) => {
     setChecked(checked);

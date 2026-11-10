@@ -7,7 +7,7 @@ import { Bell, Headphones, Settings } from "lucide-react";
 import AccountHoverMenu from "./AccountHoverMenu";
 import CartHoverMenu from "./CartHoverMenu";
 import type { CATEGORY_TYPE } from "@/types/types";
-export default  function MainHeader({
+export default function MainHeader({
     CategoryHeader,
     isLoading,
     registerHeader,
@@ -112,10 +112,11 @@ export default  function MainHeader({
                         </div>
                         <div className="flex justify-between gap-5 items-center">
                             <div className="flex gap-10 items-center w-full ">
-
-
+                                <Link href={"/"}>
                                 <img className="object-cover w-50 lg:block hidden"
                                     src="/digilogo.svg" alt="" />
+                                </Link>
+                                
                                         <HeaderInput/>
                             </div>
                             <ul className="flex  gap-5 items-center ">

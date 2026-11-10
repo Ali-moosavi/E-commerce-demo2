@@ -1,5 +1,5 @@
 'use client'
-import type { ProductCategory } from '@/types/category'
+import type { ProductCategory } from '@/types/types'
 import { useMemo, useState } from 'react'
 import {
   Accordion,

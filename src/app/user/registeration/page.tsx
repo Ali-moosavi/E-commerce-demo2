@@ -204,7 +204,6 @@ export default function RegistrationPage() {
             if (data.step === 'fullname') {
                 const response = await signUpUser({
                     identifier: data.identifier,
-                    termsAccepted: data.termsAccepted,
                     password: data.password,
                     fullname: data.fullname,
                 })

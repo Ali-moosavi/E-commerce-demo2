@@ -96,13 +96,12 @@ export async function getProductById(id: string) {
   });
 }
 
-// --- CART ACTIONS ---
 
 export async function getCartStatus(userId: string) {
   const cart = await prisma.cart.findUnique({
     where: { userId },
   });
-  return cart; // Returns cart object if found, or null if not
+  return cart; 
 }
 
 export async function createCart(userId: string) {
@@ -176,7 +175,7 @@ export async function getUserCart(userId: string) {
     include: {
       items: {
         include: {
-          product: true, // Includes grandChildProduct fields (name, price, images, description, badge)
+          product: true,
         },
         orderBy: {
           createdAt: "desc",

@@ -4,6 +4,11 @@ import { productPropertyLinker } from "@/components/actions/actions";
 
 type ProductProperty = Awaited<ReturnType<typeof productPropertyLinker>>;
 
+export type PostFilterOptionsPayload = {
+  filterOptions: string[];
+  pathname: string;
+};
+
 interface asyncThunkConfig {
   rejectValue: {
     errorObj: {
@@ -19,12 +24,13 @@ interface asyncThunkConfig {
 }
 
 export const postFilterOptions = createAsyncThunk<
-  ProductProperty, // returned value: the rows from findMany
-  string[], // argument: selected option IDs
+  ProductProperty, 
+  PostFilterOptionsPayload,
   asyncThunkConfig
->("properties/postFilterOptions", async (optionIds, thunkAPI) => {
+>("properties/postFilterOptions", async (userData, thunkAPI) => {
+  const { filterOptions, pathname } = userData;
   try {
-    return await productPropertyLinker(optionIds);
+    return await productPropertyLinker(filterOptions, pathname);
   } catch (error) {
     return thunkAPI.rejectWithValue({
       errorObj: {

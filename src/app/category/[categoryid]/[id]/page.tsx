@@ -13,18 +13,24 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 import AddToCart from "@/components/single-product/AddToCart";
 import { getProductById } from "@/lib/data";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import {prisma} from "@/lib/prisma";
 
+
+export const generateStaticParams = async () => {
+  const products = await prisma.grandChildProduct.findMany({
+    select: { id: true, categoryId: true },
+  });
+  return products.map((p) => ({
+    id: String(p.id),
+    categoryid: String(p.categoryId),
+  }));
+};
 
 export default async function SingleProduct({
   params,
 }: {
   params: Promise<{ categoryid: string; id: string }>;
 }) {
-  const session = await auth.api.getSession({
-    headers: await headers()
-  });
   const { categoryid, id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
@@ -250,7 +256,8 @@ export default async function SingleProduct({
                       </span>
                     </p>
                   </div>
-                  <AddToCart user={session?.user} productId={product.id} />
+                  <AddToCart 
+                  productId={product.id} />
                   <div className="mt-4 flex items-center gap-2 text-[11px] text-[#62666d]">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f9bc00] text-xs font-bold">
                       +
@@ -424,7 +431,8 @@ export default async function SingleProduct({
 
       <div className="fixed inset-x-0 bottom-15.25 z-40 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.08)] lg:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-4">
-          <AddToCart user={session?.user} productId={product.id} />
+          <AddToCart
+           productId={product.id} />
           <p className="whitespace-nowrap text-left">
             <strong className="text-base font-[iransansBold]">
               {product.price}
