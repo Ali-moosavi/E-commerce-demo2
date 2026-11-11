@@ -36,6 +36,7 @@ next-env.d.ts
 /postgres-data/
 *.sql
 !prisma/migrations/20261109050000_page_details_child_relations/migration.sql
+!prisma/migrations/20261111120000_add_user_first_last_names/migration.sql
 *.dump
 *.backup
 *.sqlite

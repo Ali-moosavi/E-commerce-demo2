@@ -14,6 +14,8 @@ import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 import AddToCart from "@/components/single-product/AddToCart";
 import { getProductById } from "@/lib/data";
 import {prisma} from "@/lib/prisma";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
 
 export const generateStaticParams = async () => {
@@ -34,6 +36,9 @@ export default async function SingleProduct({
   const { categoryid, id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
 
   const details = product.pageDetails;
   const featureItems = details?.featureHighlights ?? [];
@@ -257,7 +262,9 @@ export default async function SingleProduct({
                     </p>
                   </div>
                   <AddToCart 
-                  productId={product.id} />
+                    productId={product.id}
+                    userId={session?.user.id ?? null}
+                  />
                   <div className="mt-4 flex items-center gap-2 text-[11px] text-[#62666d]">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f9bc00] text-xs font-bold">
                       +
@@ -432,7 +439,9 @@ export default async function SingleProduct({
       <div className="fixed inset-x-0 bottom-15.25 z-40 border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-5px_20px_rgba(0,0,0,0.08)] lg:hidden">
         <div className="mx-auto flex max-w-xl items-center gap-4">
           <AddToCart
-           productId={product.id} />
+            productId={product.id}
+            userId={session?.user.id ?? null}
+          />
           <p className="whitespace-nowrap text-left">
             <strong className="text-base font-[iransansBold]">
               {product.price}

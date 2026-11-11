@@ -9,15 +9,14 @@ import {
   getProductCartQuantity,
   updateCartItemQuantity,
 } from "@/lib/data";
-import { authClient } from "@/lib/auth-clients";
 
 interface AddToCartProps {
   productId: string;
+  userId: string | null;
 }
 
-export default function AddToCart({productId}: AddToCartProps) {
-    const { data: session} = authClient.useSession();
-  const effectiveUserId = session?.user?.id;
+export default function AddToCart({ productId, userId }: AddToCartProps) {
+  const effectiveUserId = userId;
   const [Quantity, setQuantity] = useState(0);
   const [isPending, setIsPending] = useState(false);
 

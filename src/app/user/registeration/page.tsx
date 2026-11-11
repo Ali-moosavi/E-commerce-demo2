@@ -41,7 +41,7 @@ import { Input } from '@/components/ui/input'
 
 const formSchema = z
     .object({
-        step: z.enum(['identifier', 'password', 'fullname']),
+        step: z.enum(['identifier', 'password', 'name']),
         identifyState: z.boolean(),
         validatePassword: z.string(),
         identifier: z
@@ -52,8 +52,8 @@ const formSchema = z
 
         termsAccepted: z.boolean(),
         password: z.string(),
-        fullname: z.string(),
-
+        firstName: z.string(),
+        lastName: z.string(),
     })
     .superRefine((data, ctx) => {
         if (!data.termsAccepted) {
@@ -98,12 +98,19 @@ const formSchema = z
                 return
             }
         }
-        if (data.step === 'fullname') {
-            if (!data.fullname) {
+        if (data.step === 'name') {
+            if (!data.firstName.trim()) {
                 ctx.addIssue({
                     code: 'custom',
-                    path: ['fullname'],
-                    message: 'لطفا نام و نام خانوادگی خود را وارد کنید'
+                    path: ['firstName'],
+                    message: 'نام را وارد کنید.',
+                })
+            }
+            if (!data.lastName.trim()) {
+                ctx.addIssue({
+                    code: 'custom',
+                    path: ['lastName'],
+                    message: 'نام خانوادگی را وارد کنید.',
                 })
             }
         }
@@ -145,7 +152,8 @@ export default function RegistrationPage() {
             password: '',
             identifyState: false,
             validatePassword: '',
-            fullname: '',
+            firstName: '',
+            lastName: '',
         },
     })
 
@@ -193,7 +201,7 @@ export default function RegistrationPage() {
                     return
                 }
 
-                form.setValue('step', 'fullname', {
+                form.setValue('step', 'name', {
                     shouldTouch: false,
                     shouldDirty: false,
                     shouldValidate: false,
@@ -201,11 +209,12 @@ export default function RegistrationPage() {
                 return
             }
 
-            if (data.step === 'fullname') {
+            if (data.step === 'name') {
                 const response = await signUpUser({
                     identifier: data.identifier,
                     password: data.password,
-                    fullname: data.fullname,
+                    firstName: data.firstName,
+                    lastName: data.lastName,
                 })
 
                 if (!response.success) {
@@ -460,22 +469,20 @@ export default function RegistrationPage() {
                                             }
                                         />
                                     ) : null}
-                                    {currentStep === 'fullname' && (
+                                    {currentStep === 'name' && (
                                         <Controller
-                                            name='fullname'
+                                            name='firstName'
                                             control={form.control}
                                             render={({ field, fieldState }) => (
                                                 <Field data-invalid={fieldState.invalid}>
-                                                    <FieldLabel>
-                                                        نام و نام خانوادگی 
-                                                    </FieldLabel>
+                                                    <FieldLabel>نام</FieldLabel>
                                                     <Input
                                                         {...field}
-                                                        id="fullname"
+                                                        id="firstName"
                                                         type='text'
                                                         aria-invalid={fieldState.invalid}
-                                                        placeholder="نام و نام خانوادگی خود را وارد کنید"
-                                                        autoComplete="off"
+                                                        placeholder="نام خود را وارد کنید"
+                                                        autoComplete="given-name"
                                                     />
                                                     {fieldState.invalid && (
                                                         <FieldError errors={[fieldState.error]} />
@@ -484,6 +491,28 @@ export default function RegistrationPage() {
 
                                             )
                                             }
+                                        />
+                                    )}
+                                    {currentStep === 'name' && (
+                                        <Controller
+                                            name='lastName'
+                                            control={form.control}
+                                            render={({ field, fieldState }) => (
+                                                <Field data-invalid={fieldState.invalid}>
+                                                    <FieldLabel>نام خانوادگی</FieldLabel>
+                                                    <Input
+                                                        {...field}
+                                                        id="lastName"
+                                                        type='text'
+                                                        aria-invalid={fieldState.invalid}
+                                                        placeholder="نام خانوادگی خود را وارد کنید"
+                                                        autoComplete="family-name"
+                                                    />
+                                                    {fieldState.invalid && (
+                                                        <FieldError errors={[fieldState.error]} />
+                                                    )}
+                                                </Field>
+                                            )}
                                         />
                                     )}
 
@@ -511,7 +540,7 @@ export default function RegistrationPage() {
                                     {currentStep == 'password' && identifyState == false ? 'ادامه'
                                         : currentStep == 'password' && identifyState == true ? 'ورود'
                                             : currentStep == 'identifier' ? 'ادامه'
-                                                : currentStep === 'fullname' ? 'ثبت نام'
+                                                : currentStep === 'name' ? 'ثبت نام'
                                                     : null}
                                 </Button>
 

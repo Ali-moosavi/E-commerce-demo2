@@ -1,17 +1,16 @@
-"use client"
+"use client";
 
 import type { CATEGORY_PROPERTIES } from "@/types/types";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
-import { useState } from "react";
-import { useEffect } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../ui/accordion";
+import { useState, useEffect, useRef } from "react";
 import { useAppDispatch } from "@/redux/setup/hooks";
-import { setfilteredProperties } from "@/redux/features/properties/propertiesSlice";
 import { postFilterOptions } from "@/redux/features/properties/propertiesService";
-import { usePathname } from "next/navigation";
-
-
-
-
+import { usePathname, useRouter } from "next/navigation";
 
 export default function FilterSection({
   properties,
@@ -20,22 +19,42 @@ export default function FilterSection({
 }) {
   const dispatch = useAppDispatch();
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
-  const [Checked, setChecked] = useState(false);
   const pathname = usePathname();
-  console.log(pathname)
+  const router = useRouter();
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
-    dispatch(postFilterOptions({ filterOptions, pathname }));
-  }, [filterOptions, dispatch, pathname]);
+    // Don't run on initial page load
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // If all checkboxes are unchecked, reset URL to show all products
+    if (filterOptions.length === 0) {
+      router.push(pathname, { scroll: false });
+      return;
+    }
+
+    dispatch(postFilterOptions({ filterOptions, pathname }))
+      .unwrap()
+      .then((productIds) => {
+        const params = new URLSearchParams();
+        if (productIds && productIds.length > 0) {
+          productIds.forEach((id: string) => params.append("id", id));
+        } else {
+          params.append("id", "none"); // No products match this filter
+        }
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
+  }, [filterOptions, dispatch, pathname, router]);
 
   const checkboxChangeHandeler = (checked: boolean, optionId: string) => {
-    setChecked(checked);
     if (checked) {
       setFilterOptions((pre) => [...pre, optionId]);
-    } else if (!checked) {
+    } else {
       setFilterOptions((filter) =>
-        filter.filter((option) => {
-          return option != optionId;
-        }),
+        filter.filter((option) => option !== optionId),
       );
     }
   };

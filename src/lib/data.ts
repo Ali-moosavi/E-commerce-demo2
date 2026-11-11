@@ -8,6 +8,8 @@ export async function getProducts() {
 }
 
 export async function getClassifiedProducts(id: string) {
+  if (!id) return [];
+
   const category = await prisma.categories.findUnique({
     where: {
       categoryId: id,
@@ -43,7 +45,7 @@ export async function getClassifiedProducts(id: string) {
 }
 
 export async function getProductsCategories() {
-  const productsCategory = prisma.categories.findMany({
+  const productsCategory = await prisma.categories.findMany({
     where: { parentCategoryId: null },
     include: {
       children: {
@@ -55,6 +57,8 @@ export async function getProductsCategories() {
 }
 
 export async function getProductsProperties(categoryId: string) {
+  if (!categoryId) return [];
+
   const category = await prisma.categories.findUnique({
     where: { categoryId },
     select: {
@@ -82,6 +86,8 @@ export async function getProductsProperties(categoryId: string) {
 }
 
 export async function getProductById(id: string) {
+  if (!id) return null;
+
   return prisma.grandChildProduct.findUnique({
     where: { id },
     include: {
@@ -96,12 +102,13 @@ export async function getProductById(id: string) {
   });
 }
 
-
 export async function getCartStatus(userId: string) {
+  if (!userId) return null;
+
   const cart = await prisma.cart.findUnique({
     where: { userId },
   });
-  return cart; 
+  return cart;
 }
 
 export async function createCart(userId: string) {
@@ -117,6 +124,8 @@ export async function getProductCartQuantity(
   userId: string,
   productId: string,
 ) {
+  if (!userId || !productId) return 0;
+
   const cart = await prisma.cart.findUnique({
     where: { userId },
   });

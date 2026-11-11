@@ -10,7 +10,8 @@ import { z } from "zod";
 const createUserSchema = z.object({
   identifier: z.string().email("Invalid email address."),
   password: z.string().min(6, "Password must be at least 6 characters."),
-  fullname: z.string().min(2, "Full name is required."),
+  firstName: z.string().trim().min(1, "First name is required.").max(50),
+  lastName: z.string().trim().min(1, "Last name is required.").max(50),
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -29,7 +30,16 @@ export type AuthResult =
       error: string;
     };
 
-export async function productPropertyLinker(optionIds: string[] , pathname: string) {
+
+
+export async function productPropertyLinker(
+  optionIds: string[],
+  pathname: string,
+) {
+  if (!optionIds || optionIds.length === 0) {
+    return [];
+  }
+
   const productsProperties = await prisma.productsproperty.findMany({
     select: {
       productId: true,
@@ -39,17 +49,7 @@ export async function productPropertyLinker(optionIds: string[] , pathname: stri
     },
   });
 
-  const params = new URLSearchParams();
-  productsProperties.forEach((item) => params.append("id", item.productId));
-  redirect(`${pathname}?${params.toString()}`);
-
-  // const filteredProducts = await prisma.grandChildProduct.findMany({
-  //   where: {
-  //     id: { in: productsProperties.map((item) => item.productId) },
-  //   },
-  // });
-
-  // return filteredProducts;
+  return productsProperties.map((item) => String(item.productId));
 }
 
 export async function signUpUser(data: CreateUserInput): Promise<AuthResult> {
@@ -68,7 +68,15 @@ export async function signUpUser(data: CreateUserInput): Promise<AuthResult> {
       body: {
         email: parsed.data.identifier.trim().toLowerCase(),
         password: parsed.data.password,
-        name: parsed.data.fullname.trim(),
+        name: `${parsed.data.firstName} ${parsed.data.lastName}`,
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: response.user.id },
+      data: {
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
       },
     });
     console.log(response);
