@@ -17,36 +17,40 @@ function CategoryBranches({
 }) {
   return (
     <div className="divide-y divide-[#f0f0f0]">
-      {categories.map((category) => (
-        <Accordion
-          key={category.categoryId}
-          dir="rtl"
-          className="w-full"
-        >
-          <AccordionItem
-            value={category.categoryId}
-            className="border-0 bg-white"
-          >
-            <div className="flex items-center justify-between px-4 py-3">
-              <Link
-                href={`/category/${category.categoryId}`}
-                className="flex-1 text-right text-[13px] font-medium text-[#23254e]"
-              >
-                {category.name}
-              </Link>
-              {category.children.length > 0 && (
-                <AccordionTrigger className="shrink-0 p-0" />
-              )}
-            </div>
+      {categories.map((category) => {
+        const children = category.children ?? []
 
-            {category.children.length > 0 && (
-              <AccordionContent className="px-0 pb-0">
-                <CategoryBranches categories={category.children} />
-              </AccordionContent>
-            )}
-          </AccordionItem>
-        </Accordion>
-      ))}
+        return (
+          <Accordion
+            key={category.categoryId}
+            dir="rtl"
+            className="w-full"
+          >
+            <AccordionItem
+              value={category.categoryId}
+              className="border-0 bg-white"
+            >
+              <div className="flex items-center justify-between px-4 py-3">
+                <Link
+                  href={`/category/${category.categoryId}`}
+                  className="flex-1 text-right text-[13px] font-medium text-[#23254e]"
+                >
+                  {category.name}
+                </Link>
+                {children.length > 0 && (
+                  <AccordionTrigger className="shrink-0 p-0" />
+                )}
+              </div>
+
+              {children.length > 0 && (
+                <AccordionContent className="px-0 pb-0">
+                  <CategoryBranches categories={children} />
+                </AccordionContent>
+              )}
+            </AccordionItem>
+          </Accordion>
+        )
+      })}
     </div>
   )
 }
@@ -104,7 +108,7 @@ export default function MobileCategoryTree({ Categories }: { Categories: Product
                 </Link>
 
                 <div className="border-t border-[#f0f0f0]">
-                  <CategoryBranches categories={activeCategory.children} />
+                  <CategoryBranches categories={activeCategory.children ?? []} />
                 </div>
               </>
             ) : null}

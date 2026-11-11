@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { prisma } from "@/lib/prisma";
 import {
   getClassifiedProducts,
   getProductsCategories,
@@ -10,18 +9,6 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterSection from "@/components/filter/Filter";
 import MobileFilter from "@/components/filter/MobileFilter";
 import ProductsGrid from "@/components/filter/ProductsGrid";
-
-export async function generateStaticParams() {
-  const allIds = await prisma.categories.findMany({
-    select: { categoryId: true },
-  });
-
-  return allIds
-    .filter((category) => category.categoryId != null)
-    .map((category) => ({
-      categoryid: String(category.categoryId),
-    }));
-}
 
 const sortOptions = [
   "پرفروش‌ترین",
@@ -92,7 +79,7 @@ export default async function CategoryIdPage({
         </div>
       </div>
 
-      <div className="px-4 pt-4 sm:px-6 lg:mt-40 lg:px-8">
+      <div className=" lg:mt-40 lg:px-8">
         <header className="mr-77 mt-8 hidden lg:block">
           <ul className="flex items-stretch gap-2 whitespace-nowrap text-sm text-gray-600 xl:gap-3">
             <li className="shrink-0 font-semibold">مرتب سازی:</li>

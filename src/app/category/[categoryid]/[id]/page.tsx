@@ -13,20 +13,8 @@ import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 import AddToCart from "@/components/single-product/AddToCart";
 import { getProductById } from "@/lib/data";
-import {prisma} from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-
-
-export const generateStaticParams = async () => {
-  const products = await prisma.grandChildProduct.findMany({
-    select: { id: true, categoryId: true },
-  });
-  return products.map((p) => ({
-    id: String(p.id),
-    categoryid: String(p.categoryId),
-  }));
-};
 
 export default async function SingleProduct({
   params,
