@@ -3,12 +3,14 @@ import {
   getClassifiedProducts,
   getProductsCategories,
   getProductsProperties,
+  getProductsPropertyLinks,
 } from "@/lib/data";
 import { ArrowLeft } from "lucide-react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterSection from "@/components/filter/Filter";
 import MobileFilter from "@/components/filter/MobileFilter";
 import ProductsGrid from "@/components/filter/ProductsGrid";
+import { prisma } from "@/lib/prisma";
 
 const sortOptions = [
   "پرفروش‌ترین",
@@ -25,11 +27,13 @@ export default async function CategoryIdPage({
 }) {
   const { categoryid } = await params;
 
-  const [products, productsCategory, productsProperty] = await Promise.all([
-    getClassifiedProducts(categoryid),
-    getProductsCategories(),
-    getProductsProperties(categoryid),
-  ]);
+  const [products, productsCategory, productsProperty, productLinks] =
+    await Promise.all([
+      getClassifiedProducts(categoryid),
+      getProductsCategories(),
+      getProductsProperties(categoryid),
+      getProductsPropertyLinks(),
+    ]);
 
   return (
     <>
@@ -60,7 +64,7 @@ export default async function CategoryIdPage({
 
       <div className="sticky top-13.5 z-30 border-b border-gray-200 bg-white lg:hidden">
         <div className="flex items-center gap-2 px-3 py-2">
-          <MobileFilter properties={productsProperty} />
+          <MobileFilter properties={productsProperty} productLinks={productLinks} />
           <ul className="flex gap-2 overflow-x-auto whitespace-nowrap text-[11px]">
             {sortOptions.map((option, index) => (
               <li key={option}>
@@ -103,7 +107,10 @@ export default async function CategoryIdPage({
             <h2 className="mb-3 border-b border-gray-200 pb-2 px-1 text-lg font-bold text-gray-800">
               فیلترها
             </h2>
-            <FilterSection properties={productsProperty} />
+            <FilterSection
+              properties={productsProperty}
+              productLinks={productLinks}
+            />
           </aside>
 
           <Suspense

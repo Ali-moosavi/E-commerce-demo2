@@ -139,9 +139,6 @@ export default function Slider() {
     },
     {
       img: "Mobileslide2",
-      text: " از خونه تا خودرو هرجی لازم داری",
-      discreption: "",
-      button: "خرید",
     },
     {
       img: "Mobileslide3",
@@ -212,7 +209,7 @@ export default function Slider() {
                 {/* text block: right side, vertically centered, limited width */}
                 <div className="absolute inset-y-0 right-0 flex w-[62%] flex-col items-start justify-center gap-1 pr-4 sm:w-1/2 sm:pr-8">
                   <p className="text-start text-[13px] font-[iransansBold] leading-5 text-white drop-shadow-md sm:text-xl sm:leading-8">
-                    {slide.text.trim()}
+                    {slide?.text?.trim()}
                   </p>
 
                   {slide.discreption && (

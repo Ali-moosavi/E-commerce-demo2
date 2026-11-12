@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useAppSelector } from "@/redux/setup/hooks";
 import Image from "next/image";
 import Link from "next/link";
 import Pagination from "@mui/material/Pagination";
@@ -17,18 +17,14 @@ export default function ProductsGrid({
 }: {
   products: PRODUCT_TYPE[];
 }) {
-  const searchParams = useSearchParams();
+const reduxFiltered = useAppSelector(
+  (state) => state.PropertyState.filteredProducts,
+);
 
-  const urlIds = searchParams
-    .getAll("id")
-    .flatMap((item) => item.split(","))
-    .filter(Boolean);
-
-  // If ?id=... exists in URL, filter by it. When unchecked (no ?id= in URL), show all products!
-  const finalProducts =
-    urlIds.length > 0
-      ? products.filter((p) => urlIds.includes(String(p.id)))
-      : products;
+const finalProducts =
+  reduxFiltered === null
+    ? products
+    : products.filter((p) => reduxFiltered.includes(String(p.id)));
 
   const count = Math.ceil(finalProducts.length / 10);
 

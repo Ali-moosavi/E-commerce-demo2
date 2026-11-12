@@ -7,47 +7,48 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
+import { setfilteredProducts } from "@/redux/features/properties/propertiesSlice";
 import { useState, useEffect, useRef } from "react";
 import { useAppDispatch } from "@/redux/setup/hooks";
-import { postFilterOptions } from "@/redux/features/properties/propertiesService";
-import { usePathname, useRouter } from "next/navigation";
+import { setfilteredProperties } from "@/redux/features/properties/propertiesSlice";
+
+type ProductLink = {
+  productId: string | null;
+  optionId: string | null;
+};
 
 export default function FilterSection({
   properties,
+  productLinks = [],
 }: {
   properties: CATEGORY_PROPERTIES[];
+  productLinks?: ProductLink[];
 }) {
   const dispatch = useAppDispatch();
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
-  const pathname = usePathname();
-  const router = useRouter();
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Don't run on initial page load
+    if (filterOptions.length === 0) {
+      dispatch(setfilteredProducts(null)); // null = show all products
+      return;
+    }
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
 
-    // If all checkboxes are unchecked, reset URL to show all products
     if (filterOptions.length === 0) {
-      router.push(pathname, { scroll: false });
+      dispatch(setfilteredProperties(null));
       return;
     }
 
-    dispatch(postFilterOptions({ filterOptions, pathname }))
-      .unwrap()
-      .then((productIds) => {
-        const params = new URLSearchParams();
-        if (productIds && productIds.length > 0) {
-          productIds.forEach((id: string) => params.append("id", id));
-        } else {
-          params.append("id", "none"); // No products match this filter
-        }
-        router.push(`${pathname}?${params.toString()}`, { scroll: false });
-      });
-  }, [filterOptions, dispatch, pathname, router]);
+const matchedProductIds = productLinks
+  .filter((link) => link.optionId && filterOptions.includes(link.optionId))
+  .map((link) => String(link.productId));
+
+dispatch(setfilteredProducts(matchedProductIds));
+  }, [filterOptions, productLinks, dispatch]);
 
   const checkboxChangeHandeler = (checked: boolean, optionId: string) => {
     if (checked) {

@@ -6,7 +6,19 @@ import FilterSection from "./Filter";
 import { CATEGORY_PROPERTIES } from "@/types/types";
 import { useState } from "react";
 
-export default function MobileFilter ({ properties }: { properties: CATEGORY_PROPERTIES[] }){
+
+type ProductLink = {
+  productId: string | null;
+  optionId: string | null;
+};
+
+export default function MobileFilter ({
+  properties,
+  productLinks,
+}: {
+  properties: CATEGORY_PROPERTIES[];
+  productLinks: ProductLink[];
+}){
 
     const [filterOpen , setFilterOpen] = useState(false)
 
@@ -40,7 +52,7 @@ export default function MobileFilter ({ properties }: { properties: CATEGORY_PRO
               </span>
             </div>
             <div className="px-4 py-3">
-              <FilterSection  properties={properties} />
+              <FilterSection  properties={properties} productLinks={productLinks} />
             </div>
             <div className="sticky bottom-0 flex gap-3 border-t border-gray-200 bg-white px-4 py-3">
               <span
