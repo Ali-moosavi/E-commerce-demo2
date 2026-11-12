@@ -7,10 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { setfilteredProducts } from "@/redux/features/properties/propertiesSlice";
 import { useState, useEffect, useRef } from "react";
 import { useAppDispatch } from "@/redux/setup/hooks";
-import { setfilteredProperties } from "@/redux/features/properties/propertiesSlice";
+import { setfilteredProducts } from "@/redux/features/properties/propertiesSlice";
 
 type ProductLink = {
   productId: string | null;
@@ -29,25 +28,21 @@ export default function FilterSection({
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    if (filterOptions.length === 0) {
-      dispatch(setfilteredProducts(null)); // null = show all products
-      return;
-    }
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
 
     if (filterOptions.length === 0) {
-      dispatch(setfilteredProperties(null));
+      dispatch(setfilteredProducts(null)); // null = show all products
       return;
     }
 
-const matchedProductIds = productLinks
-  .filter((link) => link.optionId && filterOptions.includes(link.optionId))
-  .map((link) => String(link.productId));
+    const matchedProductIds = productLinks
+      .filter((link) => link.optionId && filterOptions.includes(link.optionId))
+      .map((link) => String(link.productId));
 
-dispatch(setfilteredProducts(matchedProductIds));
+    dispatch(setfilteredProducts(matchedProductIds));
   }, [filterOptions, productLinks, dispatch]);
 
   const checkboxChangeHandeler = (checked: boolean, optionId: string) => {

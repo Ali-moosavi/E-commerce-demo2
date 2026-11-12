@@ -10,7 +10,6 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterSection from "@/components/filter/Filter";
 import MobileFilter from "@/components/filter/MobileFilter";
 import ProductsGrid from "@/components/filter/ProductsGrid";
-import { prisma } from "@/lib/prisma";
 
 const sortOptions = [
   "پرفروش‌ترین",

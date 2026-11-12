@@ -6,7 +6,6 @@ import FilterSection from "./Filter";
 import { CATEGORY_PROPERTIES } from "@/types/types";
 import { useState } from "react";
 
-
 type ProductLink = {
   productId: string | null;
   optionId: string | null;
