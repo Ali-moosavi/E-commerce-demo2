@@ -1,7 +1,8 @@
 "use server";
 
-import { auth } from "@/lib/auth";
+import { auth, requireServerSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -113,6 +114,7 @@ export async function signInUser({
       },
     });
 
+
     return {
       success: true,
       user: {
@@ -121,6 +123,7 @@ export async function signInUser({
         name: response.user.name,
       },
     };
+
   } catch (error) {
     console.error("[auth] signInEmail failed:", error);
     return {
@@ -149,4 +152,133 @@ export async function userExists(email: string): Promise<boolean> {
   });
 
   return Boolean(existingUser);
+}
+
+export async function getCurrentProductCartQuantity(productId: string) {
+  const session = await requireServerSession();
+  if (!productId) return 0;
+
+  const cart = await prisma.cart.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true },
+  });
+  if (!cart) return 0;
+
+  const cartItem = await prisma.cartItem.findUnique({
+    where: {
+      cartId_productId: {
+        cartId: cart.id,
+        productId,
+      },
+    },
+    select: { quantity: true },
+  });
+
+  return cartItem?.quantity ?? 0;
+}
+
+export async function setCurrentProductCartQuantity(
+  productId: string,
+  quantity: number,
+) {
+  const session = await requireServerSession();
+  if (!productId || !Number.isInteger(quantity) || quantity < 0) {
+    throw new Error("Invalid cart item.");
+  }
+
+  const cart = await prisma.cart.upsert({
+    where: { userId: session.user.id },
+    update: {},
+    create: { userId: session.user.id },
+    select: { id: true },
+  });
+
+  if (quantity === 0) {
+    await prisma.cartItem.deleteMany({
+      where: { cartId: cart.id, productId },
+    });
+    return 0;
+  }
+
+  const cartItem = await prisma.cartItem.upsert({
+    where: {
+      cartId_productId: {
+        cartId: cart.id,
+        productId,
+      },
+    },
+    update: { quantity },
+    create: { cartId: cart.id, productId, quantity },
+    select: { quantity: true },
+  });
+
+  return cartItem.quantity;
+}
+
+export async function updateCartItemQuantity(
+  cartId: string,
+  productId: string,
+  quantity: number,
+) {
+  const session = await requireServerSession();
+  const cart = await prisma.cart.findFirst({
+    where: { id: cartId, userId: session.user.id },
+    select: { id: true },
+  });
+  if (!cart) throw new Error("Cart not found.");
+
+  if (quantity <= 0) {
+    return prisma.cartItem.deleteMany({
+      where: {
+        cartId,
+        productId,
+      },
+    });
+  }
+
+  return prisma.cartItem.upsert({
+    where: {
+      cartId_productId: {
+        cartId,
+        productId,
+      },
+    },
+    update: {
+      quantity,
+    },
+    create: {
+      cartId,
+      productId,
+      quantity,
+    },
+  });
+}
+
+export async function getUserCart(userId: string) {
+  if (!userId) return null;
+
+  const cart = await prisma.cart.findUnique({
+    where: { userId },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      },
+    },
+  });
+
+  return cart;
+}
+
+export async function getProductsPropertyLinks() {
+  return prisma.productsproperty.findMany({
+    select: {
+      productId: true,
+      optionId: true,
+    },
+  });
 }

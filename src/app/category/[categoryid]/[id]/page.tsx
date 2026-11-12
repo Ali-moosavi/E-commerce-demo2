@@ -12,9 +12,17 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ThumbUpAltOutlinedIcon from "@mui/icons-material/ThumbUpAltOutlined";
 import AddToCart from "@/components/single-product/AddToCart";
-import { getProductById } from "@/lib/data";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getProductById, getProducts } from "@/lib/data";
+
+
+
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((product) => ({
+    categoryid: String(product.categoryId),
+    id: String(product.id),
+  }));
+}
 
 export default async function SingleProduct({
   params,
@@ -24,9 +32,7 @@ export default async function SingleProduct({
   const { categoryid, id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
-  const session = await auth.api.getSession({
-    headers: await headers()
-  })
+
 
   const details = product.pageDetails;
   const featureItems = details?.featureHighlights ?? [];
@@ -251,7 +257,7 @@ export default async function SingleProduct({
                   </div>
                   <AddToCart 
                     productId={product.id}
-                    userId={session?.user.id ?? null}
+
                   />
                   <div className="mt-4 flex items-center gap-2 text-[11px] text-[#62666d]">
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#f9bc00] text-xs font-bold">
@@ -428,7 +434,6 @@ export default async function SingleProduct({
         <div className="mx-auto flex max-w-xl items-center gap-4">
           <AddToCart
             productId={product.id}
-            userId={session?.user.id ?? null}
           />
           <p className="whitespace-nowrap text-left">
             <strong className="text-base font-[iransansBold]">

@@ -1,5 +1,5 @@
 import CartClient from "@/components/cart/CartClient";
-import { getUserCart } from "@/lib/data";
+import { getUserCart } from "@/components/actions/actions";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 

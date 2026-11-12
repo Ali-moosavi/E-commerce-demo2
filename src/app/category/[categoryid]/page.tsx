@@ -1,10 +1,12 @@
 import { Suspense } from "react";
 import {
+  getProductsPropertyLinks,
+} from "@/components/actions/actions";
+import {  
   getClassifiedProducts,
   getProductsCategories,
-  getProductsProperties,
-  getProductsPropertyLinks,
-} from "@/lib/data";
+  getProductsProperties
+} from "@/lib/data"
 import { ArrowLeft } from "lucide-react";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterSection from "@/components/filter/Filter";

@@ -16,7 +16,7 @@ import {
   Trash2,
   Truck,
 } from "lucide-react";
-import { updateCartItemQuantity } from "@/lib/data";
+import { updateCartItemQuantity } from "../actions/actions";
 
 function toLatinDigits(value: string) {
   return value
