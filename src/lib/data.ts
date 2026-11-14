@@ -1,4 +1,3 @@
-
 import { prisma } from "@/lib/prisma";
 
 export async function getProducts() {
@@ -97,6 +96,15 @@ export async function getProductById(id: string) {
           specifications: true,
         },
       },
+    },
+  });
+}
+
+export async function getProductsPropertyLinks() {
+  return prisma.productsproperty.findMany({
+    select: {
+      productId: true,
+      optionId: true,
     },
   });
 }

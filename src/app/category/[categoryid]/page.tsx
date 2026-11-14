@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import {
   getProductsPropertyLinks,
-} from "@/components/actions/actions";
+} from "@/lib/data";
 import {  
   getClassifiedProducts,
   getProductsCategories,
@@ -12,19 +12,23 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import FilterSection from "@/components/filter/Filter";
 import MobileFilter from "@/components/filter/MobileFilter";
 import ProductsGrid from "@/components/filter/ProductsGrid";
+import ProductsSorting from "@/components/filter/ProductsSorting";
+import { prisma } from "@/lib/prisma";
 
-const sortOptions = [
-  "پرفروش‌ترین",
-  "جدیدترین",
-  "ارزان‌ترین",
-  "گران‌ترین",
-  "پربازدیدترین",
-];
+export async function generateStaticParams() {
+  const categories = await prisma.grandChildProduct.findMany({
+    select: { id: true },
+  });
+
+  return categories.map((category) => ({
+    categoryid: String(category.id),
+  }));
+}
 
 export default async function CategoryIdPage({
   params,
 }: {
-  params: Promise<{ categoryid: string }>;
+  params: Promise<{ categoryid: string}>;
 }) {
   const { categoryid } = await params;
 
@@ -65,44 +69,16 @@ export default async function CategoryIdPage({
 
       <div className="sticky top-13.5 z-30 border-b border-gray-200 bg-white lg:hidden">
         <div className="flex items-center gap-2 px-3 py-2">
-          <MobileFilter properties={productsProperty} productLinks={productLinks} />
-          <ul className="flex gap-2 overflow-x-auto whitespace-nowrap text-[11px]">
-            {sortOptions.map((option, index) => (
-              <li key={option}>
-                <span
-                  className={`block rounded-full px-3 py-1.5 ${
-                    index === 0
-                      ? "bg-[#f0f0f1] font-[iransansBold] text-[#23254e]"
-                      : "text-[#62666d]"
-                  }`}
-                >
-                  {option}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <MobileFilter
+            properties={productsProperty}
+            productLinks={productLinks}
+          />
+          <ProductsSorting view="mobile" products={products} />
         </div>
       </div>
 
       <div className=" lg:mt-40 lg:px-8">
-        <header className="mr-77 mt-8 hidden lg:block">
-          <ul className="flex items-stretch gap-2 whitespace-nowrap text-sm text-gray-600 xl:gap-3">
-            <li className="shrink-0 font-semibold">مرتب سازی:</li>
-            {sortOptions.map((option, index) => (
-              <li
-                key={option}
-                className={`transition ${
-                  index === 0
-                    ? "font-semibold text-red-600 opacity-100"
-                    : "text-gray-500 opacity-60"
-                }`}
-              >
-                {option}
-              </li>
-            ))}
-          </ul>
-        </header>
-
+        <ProductsSorting view="desktop" products={products} />
         <main className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)] lg:pt-5">
           <aside className="order-1 hidden h-fit rounded-xl border border-gray-200 bg-white p-4 shadow-sm lg:sticky lg:top-50 lg:block">
             <h2 className="mb-3 border-b border-gray-200 pb-2 px-1 text-lg font-bold text-gray-800">

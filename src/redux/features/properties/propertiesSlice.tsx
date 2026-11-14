@@ -5,6 +5,7 @@ import { postFilterOptions } from "./propertiesService";
 const initialState: PROPERTIESINITIALSTATE = {
   filteredProperties: [],
   filteredProducts: null, // Changed from [] to null so all products show initially!
+  products: []
 };
 
 const propertiesSlice = createSlice({
@@ -18,6 +19,10 @@ const propertiesSlice = createSlice({
     setfilteredProducts(state, action: PayloadAction<string[] | null>) {
       state.filteredProducts = action.payload;
     },
+    setProducts(state , action){
+      state.products = action.payload
+      console.log(state.products)
+    }
   },
   extraReducers(builder) {
     builder.addCase(postFilterOptions.fulfilled, (state, action) => {
@@ -27,5 +32,5 @@ const propertiesSlice = createSlice({
 });
 
 export default propertiesSlice.reducer;
-export const { setfilteredProperties, setfilteredProducts } =
+export const { setfilteredProperties, setfilteredProducts, setProducts } =
   propertiesSlice.actions;

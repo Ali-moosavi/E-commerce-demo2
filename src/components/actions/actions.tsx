@@ -274,11 +274,4 @@ export async function getUserCart(userId: string) {
   return cart;
 }
 
-export async function getProductsPropertyLinks() {
-  return prisma.productsproperty.findMany({
-    select: {
-      productId: true,
-      optionId: true,
-    },
-  });
-}
+

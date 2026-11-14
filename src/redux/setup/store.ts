@@ -1,5 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import ProductsSlice from '../features/products/ProductsSlice'
 import propertiesSlice from "../features/properties/propertiesSlice"
 // import SettingSlice from '../features/Setting/SettingSlice'
 // import CategoriesSlice from '../features/Categories/CategoriesSlice'
@@ -9,7 +8,6 @@ import propertiesSlice from "../features/properties/propertiesSlice"
 export function makeStore() {
   return configureStore({
     reducer: {
-      Productstate: ProductsSlice,
       PropertyState: propertiesSlice,
     },
   });

@@ -266,4 +266,5 @@ export type CATEGORY_PROPERTIES = {
 export type PROPERTIESINITIALSTATE = {
   filteredProperties: string[];
   filteredProducts: string[] | null;
+  products: [] | PRODUCT_TYPE[]
 };

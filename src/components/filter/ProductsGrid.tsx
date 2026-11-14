@@ -3,9 +3,19 @@
 import { useAppSelector } from "@/redux/setup/hooks";
 import Image from "next/image";
 import Link from "next/link";
-import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import type { PRODUCT_TYPE } from "@/types/types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { array } from "zod";
+import { useSearchParams } from "next/navigation";
 
 const toPersianDigits = (value: string | number): string =>
   String(value)
@@ -17,21 +27,25 @@ export default function ProductsGrid({
 }: {
   products: PRODUCT_TYPE[];
 }) {
-const reduxFiltered = useAppSelector(
-  (state) => state.PropertyState.filteredProducts,
-);
+  const searchParams = useSearchParams();
+const { products: finalProducts } =
+  useAppSelector((state) => state.PropertyState);
 
-const finalProducts =
-  reduxFiltered === null
-    ? products
-    : products.filter((p) => reduxFiltered.includes(String(p.id)));
+  const currentPage = Number(searchParams.get("pagination")) || 1;
+
+  const paginatedProducts = finalProducts.slice(
+    (currentPage - 1) * 4,
+    currentPage * 4
+  );
+ 
+
 
   const count = Math.ceil(finalProducts.length / 10);
 
   return (
     <div className="order-3 flex flex-col justify-between gap-8 lg:order-2">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {finalProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <Link
             href={`/category/${product.categoryId}/${product.id}`}
             key={product.id}
@@ -83,7 +97,23 @@ const finalProducts =
       <nav aria-label="صفحه‌ها" className="my-8 flex justify-center" dir="ltr">
         <div className="flex items-center gap-1">
           <Stack spacing={2}>
-            <Pagination count={count} />
+            <Pagination dir="rtl" >
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious href="#" />
+                </PaginationItem>
+                {Array.from({ length: count }, (_, index) => (
+                  <PaginationItem key={index}>
+                    <PaginationLink href={`?pagination=${index + 1}`}>
+                      {toPersianDigits(index + 1)}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext href="#" />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </Stack>
         </div>
       </nav>
